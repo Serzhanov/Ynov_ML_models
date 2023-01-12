@@ -2,7 +2,10 @@ import numpy as np
 import pandas as pd
 import models.decision_tree
 import models.linear_reg
+import models.logistic_reg
+import seaborn as sns
 from sklearn.datasets import load_iris
+import matplotlib.pyplot as plt
 
 def test_decision_tree():
 
@@ -29,7 +32,7 @@ def test_decision_tree():
 
 def test_linear_reg():
     #Imports
-    import matplotlib.pyplot as plt
+    
     from sklearn.model_selection import train_test_split
     from sklearn import datasets
 
@@ -66,3 +69,29 @@ def test_linear_reg():
     m2 = plt.scatter(X_test, y_test, color=cmap(0.5), s=10)
     plt.plot(X, y_pred_line, color="black", linewidth=2, label="Prediction")
     plt.show()
+
+def test_logistic_reg():
+    from sklearn.model_selection import train_test_split
+    from sklearn import datasets
+
+    def accuracy(y_true, y_pred):
+        accuracy = np.sum(y_true == y_pred) / len(y_true)
+        return accuracy
+
+    bc = datasets.load_iris()
+    X, y = bc.data, bc.target
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=500
+    )
+
+    regressor = models.logistic_reg.LogisticRegression(learning_rate=0.0001, n_iters=1000)
+    regressor.fit(X_train, y_train)
+
+    predictions = regressor.predict(X_test)
+    probs = regressor.get_probs(X_test)
+
+
+
+
+    print("LR classification accuracy:", accuracy(y_test, predictions))
