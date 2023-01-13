@@ -3,9 +3,15 @@ import pandas as pd
 import models.decision_tree
 import models.linear_reg
 import models.logistic_reg
+import models.bagging
 import seaborn as sns
 from sklearn.datasets import load_iris
 import matplotlib.pyplot as plt
+
+
+def accuracy(y_true, y_pred):
+        accuracy = np.sum(y_true == y_pred) / len(y_true)
+        return accuracy
 
 def test_decision_tree():
 
@@ -74,9 +80,7 @@ def test_logistic_reg():
     from sklearn.model_selection import train_test_split
     from sklearn import datasets
 
-    def accuracy(y_true, y_pred):
-        accuracy = np.sum(y_true == y_pred) / len(y_true)
-        return accuracy
+    
 
     bc = datasets.load_iris()
     X, y = bc.data, bc.target
@@ -91,7 +95,39 @@ def test_logistic_reg():
     predictions = regressor.predict(X_test)
     probs = regressor.get_probs(X_test)
 
-
-
-
     print("LR classification accuracy:", accuracy(y_test, predictions))
+
+def test_bagging():
+    from sklearn import datasets
+    from sklearn.model_selection import train_test_split
+
+    csv_url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data'
+
+    col_names = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width', 'type']
+
+    data=pd.read_csv(csv_url, skiprows=1, header=None, names=col_names)
+
+    X = data.iloc[:, :-1].values
+    Y = data.iloc[:, -1].values.reshape(-1,1)
+
+    #Encoding
+    for i in range(len(Y)):
+        for j in range(len(Y[i])):
+            if Y[i][j]=='Iris-setosa':
+                Y[i][j]=1
+            if Y[i][j]=='Iris-versicolor':
+                Y[i][j]=2
+            if Y[i][j]=='Iris-virginica':
+                Y[i][j]=3
+
+    bagger = models.bagging.Bagger()
+
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, Y, test_size=0.2, random_state=500
+    )
+
+    bagger.fit(X_train, y_train, B = 30, max_depth = 20, min_size = 5, seed = 123)
+    y_test_hat = bagger.predict(X_test)
+
+    print("Bagging accuracy:", accuracy(y_test, y_test_hat))
